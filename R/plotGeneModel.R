@@ -23,7 +23,11 @@
 #' @return a dataframe containing the annotated vcf file of Hal2 Fil2 differences
 #' for the gene specified in geneID
 #' @examples
-#' plotGeneModel(gff = gf, snpEffVCF = sev, geneID = "Pahal.C00786", windowSize=200, stepSize = 5)
+#' library(hal2.fil2.compare)
+#' data(gff)
+#' data(snpEffVCF)
+#' plotGeneModel(gff = gff, snpEffVCF = snpEffVCF,
+#' geneID = "Pahal.C00786", windowSize=200, stepSize = 5)
 #' @export
 
 plotGeneModel<-function(gff, snpEffVCF, geneID, upstreamBuffer = 1000, downstreamBuffer = 500,
