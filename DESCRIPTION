@@ -1,0 +1,10 @@
+Package: hal2.fil2.compare
+Type: Package
+Title: Compare HAL2 genome to FIL2 Reference
+Version: 1.1.0
+Author: JTLovell
+Maintainer: JTLovell <johntlovell@gmail.com>
+Description: More soon.
+License: NA
+LazyData: TRUE
+RoxygenNote: 5.0.1
