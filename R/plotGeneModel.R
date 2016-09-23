@@ -129,49 +129,50 @@ plotGeneModel<-function(gff, snpEffVCF, geneID, upstreamBuffer = 1000, downstrea
 
   #11. combine information and prepare other columns to plot
   tp<-cbind(vcf[,-which(colnames(vcf) == "INFO")], out)
-  tp<-tp[order(tp$POS),]
-  tp<-tp[tp$POS>=min(xrange) & tp$POS<=max(xrange),]
-  #12. add in segments for each SNP
-  for(i in 1:nrow(tp)){
-    with(tp, segments(x0=POS[i],x1=POS[i],y0=1.01,y1=.99, col="orange", lwd=1))
+  # don't do anything if there is no data
+  if(nrow(tp)>0){
+    tp<-tp[order(tp$POS),]
+    tp<-tp[tp$POS>=min(xrange) & tp$POS<=max(xrange),]
+    #12. add in segments for each SNP
+    for(i in 1:nrow(tp)){
+      with(tp, segments(x0=POS[i],x1=POS[i],y0=1.01,y1=.99, col="orange", lwd=1))
+    }
+
+    #13. Sliding window SNP density
+    wind = windowSize
+    step = stepSize
+    xs<-seq(from = xrange[1], to = xrange[2], by=step)
+    sw<-sapply(xs, function(x) sum(abs(tp$POS-x)<=(wind/2)))
+    sw<-((sw/max(sw))/5)
+    lines(xs,sw+.7)
+
+    #14. Plot points for each type of annotated snp
+    toan<-sapply(as.character(tp$rel.pos), function(x)
+      any(sapply(mutations2annotate, function(y) grepl(y,x))))
+    if(sum(toan)>0){
+      mtp<-tp[toan,]
+      with(mtp, points(x=POS, y=rep(.5, length(POS)),
+                       pch = pch, col = color))
+      with(mtp, text(x=POS, y=rep(.3, length(POS)),
+                     labels = plotAnn, col = color,
+                     srt=90, cex=.6, adj = c(.5,.5)))
+    }
+
+    #15. add scale bar
+    if(!is.null(scaleBar)){
+      seg<-round(diff(xrange)*scaleBar,-2)
+      beg<-min(gff$start)
+      end<-beg+seg
+      segments(x0 = beg, x1 = end, y0=1.11, y1=1.11)
+      segments(x0=beg,x1=beg, y0 = 1.1, y1=1.12)
+      segments(x0=end,x1=end, y0 = 1.1, y1=1.12)
+      text(x = beg, y = 1.11, label = paste(seg,"bp"), adj = c(0,-.5))
+    }
+
+    #16. add annotation track labels
+    axis(2, at = c(1,.7,.4), labels = c("gene model","mut. density", "mut. annot."), las=2,
+         line=-1, lwd=0)
   }
-
-  #13. Sliding window SNP density
-  wind = windowSize
-  step = stepSize
-  xs<-seq(from = xrange[1], to = xrange[2], by=step)
-  sw<-sapply(xs, function(x) sum(abs(tp$POS-x)<=(wind/2)))
-  sw<-((sw/max(sw))/5)
-  lines(xs,sw+.7)
-
-  #14. Plot points for each type of annotated snp
-  toan<-sapply(as.character(tp$rel.pos), function(x)
-    any(sapply(mutations2annotate, function(y) grepl(y,x))))
-  if(sum(toan)>0){
-    mtp<-tp[toan,]
-    with(mtp, points(x=POS, y=rep(.5, length(POS)),
-                     pch = pch, col = color))
-    with(mtp, text(x=POS, y=rep(.3, length(POS)),
-                   labels = plotAnn, col = color,
-                   srt=90, cex=.6, adj = c(.5,.5)))
-  }
-
-  #15. add scale bar
-  if(!is.null(scaleBar)){
-    seg<-round(diff(xrange)*scaleBar,-2)
-    beg<-min(gff$start)
-    end<-beg+seg
-    segments(x0 = beg, x1 = end, y0=1.11, y1=1.11)
-    segments(x0=beg,x1=beg, y0 = 1.1, y1=1.12)
-    segments(x0=end,x1=end, y0 = 1.1, y1=1.12)
-    text(x = beg, y = 1.11, label = paste(seg,"bp"), adj = c(0,-.5))
-  }
-
-  #16. add annotation track labels
-  axis(2, at = c(1,.7,.4), labels = c("gene model","mut. density", "mut. annot."), las=2,
-       line=-1, lwd=0)
-
-
   title(main = paste(geneID, ": ", paste(gff$chr[1], "...", min(gff$start)," - ",max(gff$end)), sep =""))
   return(tp)
 }
